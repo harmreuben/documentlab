@@ -1,0 +1,30 @@
+# DocumentLab backend dependencies (Phase 2)
+# After a successful install, run:  pip freeze > requirements.lock.txt
+# to record the exact versions that worked on this machine.
+
+# --- Web framework ---
+Django>=5.2,<5.3            # 5.2 is the current long-term-support release
+djangorestframework>=3.15
+drf-spectacular>=0.27       # OpenAPI schema + Swagger page
+django-environ>=0.11        # settings from a .env file
+
+# --- Images and PDFs ---
+Pillow>=10.0
+opencv-python-headless>=4.9
+numpy>=1.26
+PyMuPDF>=1.24               # renders PDF pages to images
+
+# --- Barcodes ---
+python-barcode>=0.15        # Code 128, Code 39, EAN-13, EAN-8, UPC-A
+segno>=1.6                  # QR codes
+pdf417gen>=0.8              # generic PDF417 (neutral test schemas only)
+zxing-cpp>=2.2              # decoder for QR, PDF417 and linear codes
+
+# --- OCR and reports ---
+pytesseract>=0.3.10         # needs the Tesseract program installed separately
+reportlab>=4.0
+
+# --- Testing ---
+pytest>=8.0
+pytest-django>=4.8
+factory-boy>=3.3
