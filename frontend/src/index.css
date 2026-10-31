@@ -1,0 +1,53 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "tailwindcss";
+
+/*
+  DocumentLab tokens
+  ink      sidebar and primary text, a deep slate rather than pure black
+  canvas   page background behind the work surface
+  paper    work surfaces (panels, tables)
+  rule     every border and divider
+  electric the single accent: active navigation, primary actions, focus
+  pass / review / fail  reserved for analysis outcomes only
+*/
+@theme {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink: #0E1726;
+  --color-ink-soft: #1B2638;
+  --color-ink-line: #2A3750;
+  --color-muted: #5B6678;
+  --color-faint: #8A94A6;
+  --color-canvas: #F3F5F8;
+  --color-paper: #FFFFFF;
+  --color-rule: #DCE1E8;
+  --color-electric: #1F5BFF;
+  --color-electric-soft: #E8EFFF;
+  --color-pass: #0F8A5F;
+  --color-review: #A86200;
+  --color-fail: #C2343B;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible keyboard focus everywhere, never on mouse click only. */
+:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

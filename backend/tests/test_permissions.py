@@ -73,3 +73,22 @@ def test_read_only_user_cannot_change_anything(client_as):
     assert perm.has_permission(FakeRequest(c.user, "GET"), None) is True
     for method in ["POST", "PUT", "PATCH", "DELETE"]:
         assert perm.has_permission(FakeRequest(c.user, method), None) is False
+
+
+def test_admin_cannot_demote_or_deactivate_themselves(client_as):
+    c = client_as(Role.ADMINISTRATOR)
+    me = c.user
+    r = c.patch(f"/api/auth/users/{me.pk}/", {"role": "READ_ONLY"}, format="json")
+    assert r.status_code == 400
+    r = c.patch(f"/api/auth/users/{me.pk}/", {"is_active": False}, format="json")
+    assert r.status_code == 400
+    me.refresh_from_db()
+    assert me.role == Role.ADMINISTRATOR and me.is_active
+
+
+def test_user_list_accepts_a_page_size(client_as, make_user):
+    c = client_as(Role.ADMINISTRATOR)
+    for i in range(30):
+        make_user(f"u{i}")
+    assert len(c.get("/api/auth/users/").json()["results"]) == 25
+    assert len(c.get("/api/auth/users/?page_size=100").json()["results"]) == 31

@@ -33,6 +33,13 @@ class UserAdminSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "last_login", "date_joined", "role_label"]
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        if self.instance is not None and request is not None and self.instance.pk == request.user.pk:
+            # Stops the last administrator from locking everyone out by accident.
+            if "role" in attrs and attrs["role"] != self.instance.role:
+                raise serializers.ValidationError({"role": "You can't change your own role."})
+            if attrs.get("is_active") is False:
+                raise serializers.ValidationError({"is_active": "You can't deactivate your own account."})
         password = attrs.get("password")
         if self.instance is None and not password:
             raise serializers.ValidationError({"password": "A password is required for new users."})
