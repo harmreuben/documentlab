@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import Role, User
 from apps.audit.models import AuditEvent
+from apps.barcode_generator.models import GeneratedBarcode
 
 from .modules import MODULES
 
@@ -31,6 +32,7 @@ class DashboardSummaryView(APIView):
         today = timezone.localdate()
 
         events = AuditEvent.objects.all() if is_admin else AuditEvent.objects.filter(user=user)
+        barcodes = GeneratedBarcode.objects.all() if is_admin else GeneratedBarcode.objects.filter(created_by=user)
 
         # Activity per day for the last 14 days, including days with no events.
         start = today - timedelta(days=ACTIVITY_DAYS - 1)
@@ -66,9 +68,10 @@ class DashboardSummaryView(APIView):
                 "failed_logins_7d": (AuditEvent.objects.filter(action="auth.login_failed",
                                                                created_at__gte=now - timedelta(days=7)).count()
                                      if is_admin else None),
+                "barcodes_generated": barcodes.count(),
+                "barcodes_failed_verification": barcodes.filter(verification_status="FAIL").count(),
                 # Not built yet - null until their phases are finished.
                 "documents_processed": None,
-                "barcodes_generated": None,
                 "barcodes_decoded": None,
                 "pending_reviews": None,
             },

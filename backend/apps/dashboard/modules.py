@@ -9,7 +9,7 @@ PLANNED = "planned"
 
 MODULES = [
     {"key": "dashboard", "name": "Dashboard", "phase": 4, "status": AVAILABLE},
-    {"key": "generator", "name": "Barcode Generator", "phase": 5, "status": PLANNED},
+    {"key": "generator", "name": "Barcode Generator", "phase": 5, "status": AVAILABLE},
     {"key": "analyzer", "name": "Barcode Analyzer", "phase": 6, "status": PLANNED},
     {"key": "documents", "name": "Document Analysis", "phase": 7, "status": PLANNED},
     {"key": "test_lab", "name": "Testing Laboratory", "phase": 8, "status": PLANNED},

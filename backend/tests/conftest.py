@@ -8,6 +8,12 @@ PASSWORD = "Test-Passw0rd-2026!"  # fictional test password used only by these t
 
 
 @pytest.fixture(autouse=True)
+def _media_in_temp_folder(settings, tmp_path):
+    """Generated files go to a throwaway folder, never into the real media folder."""
+    settings.MEDIA_ROOT = tmp_path / "media"
+
+
+@pytest.fixture(autouse=True)
 def _clear_throttle_cache():
     cache.clear()
     yield

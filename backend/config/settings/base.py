@@ -12,7 +12,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
 DEBUG = False
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
-APP_VERSION = "0.4.0"  # bumped at the end of each phase
+APP_VERSION = "0.5.0"  # bumped at the end of each phase
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.audit",
     "apps.dashboard",
+    "apps.barcode_generator",
 ]
 
 MIDDLEWARE = [
@@ -97,13 +98,15 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["apps.accounts.permissions.RoleAwareDefault"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # "?format=" is used by DocumentLab for barcode formats, not for choosing JSON/HTML replies.
+    "URL_FORMAT_OVERRIDE": None,
     "DEFAULT_PAGINATION_CLASS": "config.pagination.StandardPagination",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
         "rest_framework.throttling.ScopedRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min", "login": "5/min"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min", "login": "5/min", "preview": "120/min"},
 }
 
 SPECTACULAR_SETTINGS = {

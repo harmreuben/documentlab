@@ -15,11 +15,11 @@ const analyst: Me = {
 const summary: DashboardSummary = {
   scope: 'personal', version: '0.4.0', generated_at: '2026-10-30T12:00:00Z',
   counts: { events_24h: 3, logins_7d: 2, failed_logins_7d: null, documents_processed: null,
-    barcodes_generated: null, barcodes_decoded: null, pending_reviews: null },
+    barcodes_generated: 3, barcodes_failed_verification: 0, barcodes_decoded: null, pending_reviews: null },
   users: null,
   activity: Array.from({ length: 14 }, (_, i) => ({ date: `2026-10-${String(17 + i).padStart(2, '0')}`, events: i % 3 })),
   recent_activity: [{ id: 1, created_at: '2026-10-30T11:00:00Z', username: 'ann', action: 'auth.login' }],
-  modules: [{ key: 'generator', name: 'Barcode Generator', phase: 5, status: 'planned' }],
+  modules: [{ key: 'analyzer', name: 'Barcode Analyzer', phase: 6, status: 'planned' }],
 }
 
 function json(status: number, body: unknown) {
@@ -90,7 +90,7 @@ describe('signing in', () => {
 
     expect(await screen.findByRole('heading', { name: 'Welcome back, Ann' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
-    expect(screen.getByText('Arrives with the Barcode Generator')).toBeInTheDocument()
+    expect(screen.getByText('Arrives with the Barcode Analyzer')).toBeInTheDocument()
   })
 })
 
@@ -106,8 +106,8 @@ describe('signed-in pages', () => {
       '/api/auth/me/': () => json(200, analyst),
       '/api/dashboard/summary/': () => json(200, summary),
     })
-    renderAt('/generator')
+    renderAt('/analyzer')
     expect(await screen.findByText('This workspace is not built yet.')).toBeInTheDocument()
-    expect(await screen.findByText(/It arrives in Phase 5/)).toBeInTheDocument()
+    expect(await screen.findByText(/It arrives in Phase 6/)).toBeInTheDocument()
   })
 })

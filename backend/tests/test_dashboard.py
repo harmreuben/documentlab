@@ -48,7 +48,7 @@ def test_non_admin_sees_only_their_own_activity(client_as, make_user):
 
 def test_unbuilt_modules_report_null_not_zero(client_as):
     counts = client_as(Role.ADMINISTRATOR).get(URL).json()["counts"]
-    for key in ["documents_processed", "barcodes_generated", "barcodes_decoded", "pending_reviews"]:
+    for key in ["documents_processed", "barcodes_decoded", "pending_reviews"]:
         assert counts[key] is None
 
 
@@ -71,4 +71,5 @@ def test_module_list_marks_unbuilt_modules_as_planned(client_as):
     modules = {m["key"]: m for m in client_as(Role.READ_ONLY).get(URL).json()["modules"]}
     assert len(modules) == 10
     assert modules["dashboard"]["status"] == "available"
-    assert modules["generator"]["status"] == "planned"
+    assert modules["generator"]["status"] == "available"
+    assert modules["analyzer"]["status"] == "planned"

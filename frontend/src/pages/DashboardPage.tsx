@@ -53,7 +53,10 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        <Figure label="Barcodes generated" value={data.counts.barcodes_generated} note="Arrives with the Barcode Generator" />
+        <Figure label="Barcodes generated" value={data.counts.barcodes_generated}
+          note={data.counts.barcodes_generated === null
+            ? 'Arrives with the Barcode Generator'
+            : `${data.counts.barcodes_failed_verification ?? 0} failed verification`} />
         <Figure label="Barcodes decoded" value={data.counts.barcodes_decoded} note="Arrives with the Barcode Analyzer" />
         <Figure label="Documents processed" value={data.counts.documents_processed} note="Arrives with Document Analysis" />
       </div>

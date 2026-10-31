@@ -45,6 +45,25 @@ export function messageFrom(body: unknown, fallback: string): string {
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
+/** POST a file upload (multipart form). The browser sets the multipart boundary itself. */
+export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  const token = await ensureCsrfToken()
+  let response: Response
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'X-CSRFToken': token },
+      credentials: 'same-origin',
+      body: form,
+    })
+  } catch {
+    throw new ApiError(0, 'The DocumentLab server is not reachable. Check that Django is running on port 8000.', null)
+  }
+  const body = await response.json().catch(() => null)
+  if (!response.ok) throw new ApiError(response.status, messageFrom(body, `The upload failed (${response.status}).`), body)
+  return body as T
+}
+
 export async function api<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
   const method = options.method ?? 'GET'
   const headers: Record<string, string> = { Accept: 'application/json' }

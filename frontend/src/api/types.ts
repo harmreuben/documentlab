@@ -61,6 +61,7 @@ export interface DashboardSummary {
     failed_logins_7d: number | null
     documents_processed: number | null
     barcodes_generated: number | null
+    barcodes_failed_verification?: number
     barcodes_decoded: number | null
     pending_reviews: number | null
   }

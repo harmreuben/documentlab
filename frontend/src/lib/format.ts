@@ -14,6 +14,9 @@ export const ACTION_LABELS: Record<string, string> = {
   'auth.login_failed': 'Failed sign-in',
   'user.created': 'Created a user',
   'user.updated': 'Updated a user',
+  'barcode.generated': 'Generated a barcode',
+  'barcode.batch_generated': 'Ran a barcode batch',
+  'barcode.refused': 'Refused an identity layout',
 }
 
 export function actionLabel(code: string): string {
