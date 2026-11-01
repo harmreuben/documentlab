@@ -13,12 +13,16 @@ function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, n
   return <Suspense fallback={<Loading />}><Component /></Suspense>
 }
 
+function identityOnly(element: ReactNode) {
+  return <RequireAuth roles={['ADMINISTRATOR', 'ANALYST', 'REVIEWER']}>{element}</RequireAuth>
+}
+
 function adminOnly(element: ReactNode) {
   return <RequireAuth roles={['ADMINISTRATOR']}>{element}</RequireAuth>
 }
 
 // Workspaces that are not built yet. Each moves to a real page as its phase is finished.
-const PLANNED = ['documents', 'test_lab', 'rules', 'reports']
+const PLANNED = ['rules', 'reports']
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -32,6 +36,10 @@ export const routes: RouteObject[] = [
       { path: 'generator', element: page(() => import('./pages/generator/GeneratorPage'), 'GeneratorPage') },
       { path: 'analyzer', element: page(() => import('./pages/analyzer/AnalyzerPage'), 'AnalyzerPage') },
       { path: 'analyzer/:id', element: page(() => import('./pages/analyzer/ResultPage'), 'ResultPage') },
+      { path: 'documents', element: identityOnly(page(() => import('./pages/documents/DocumentsPage'), 'DocumentsPage')) },
+      { path: 'documents/:id', element: identityOnly(page(() => import('./pages/documents/DocumentResultPage'), 'DocumentResultPage')) },
+      { path: 'test-lab', element: page(() => import('./pages/test-lab/TestLabPage'), 'TestLabPage') },
+      { path: 'test-lab/runs/:id', element: page(() => import('./pages/test-lab/RunPage'), 'RunPage') },
       ...ALL_NAV_ITEMS.filter((item) => PLANNED.includes(item.key)).map((item) => ({
         path: item.path.slice(1),
         element: <ModulePage item={item} />,

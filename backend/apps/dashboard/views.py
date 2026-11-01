@@ -18,6 +18,7 @@ from apps.accounts.models import Role, User
 from apps.audit.models import AuditEvent
 from apps.barcode_decoder.models import DecodedBarcode
 from apps.barcode_generator.models import GeneratedBarcode
+from apps.document_analysis.models import DocumentAnalysis
 
 from .modules import MODULES
 
@@ -34,6 +35,7 @@ class DashboardSummaryView(APIView):
 
         events = AuditEvent.objects.all() if is_admin else AuditEvent.objects.filter(user=user)
         barcodes = GeneratedBarcode.objects.all() if is_admin else GeneratedBarcode.objects.filter(created_by=user)
+        documents = DocumentAnalysis.objects.all() if is_admin else DocumentAnalysis.objects.filter(created_by=user)
         decoded = DecodedBarcode.objects.filter(valid=True)
         if not is_admin:
             decoded = decoded.filter(analysis__created_by=user)
@@ -74,9 +76,9 @@ class DashboardSummaryView(APIView):
                                      if is_admin else None),
                 "barcodes_generated": barcodes.count(),
                 "barcodes_failed_verification": barcodes.filter(verification_status="FAIL").count(),
-                # Not built yet - null until their phases are finished.
                 "barcodes_decoded": decoded.count(),
-                "documents_processed": None,
+                "documents_processed": documents.count(),
+                # Not built yet - null until its phase is finished.
                 "pending_reviews": None,
             },
             "users": users,

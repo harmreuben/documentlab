@@ -1,4 +1,4 @@
-﻿# DocumentLab - environment check
+# DocumentLab - environment check
 # Run from the project root:  .\scripts\check-env.ps1
 
 function Check-Tool($name, $exe, $arguments) {

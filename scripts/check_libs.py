@@ -1,4 +1,4 @@
-﻿"""DocumentLab - check that every Phase 2 Python library imports."""
+"""DocumentLab - check that every Phase 2 Python library imports."""
 import importlib
 
 MODULES = [

@@ -18,6 +18,17 @@ export const ACTION_LABELS: Record<string, string> = {
   'barcode.batch_generated': 'Ran a barcode batch',
   'barcode.refused': 'Refused an identity layout',
   'barcode.analysed': 'Analysed a file',
+  'document.analysed': 'Analysed a document',
+  'document.data_deleted': 'Deleted document data',
+  'document.compared': 'Compared documents',
+  'ssn.checked': 'Checked an SSN format',
+  'testlab.fixture_created': 'Added a test fixture',
+  'testlab.fixture_updated': 'Changed a test fixture',
+  'testlab.fixture_deleted': 'Deleted a test fixture',
+  'testlab.fixture_refused': 'Test fixture refused (not synthetic)',
+  'testlab.builtin_loaded': 'Loaded the standard fixtures',
+  'testlab.expected_adopted': 'Updated a fixture\'s expected result',
+  'testlab.run_started': 'Started a test run',
 }
 
 export function actionLabel(code: string): string {

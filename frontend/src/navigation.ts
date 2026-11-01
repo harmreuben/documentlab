@@ -33,7 +33,7 @@ export const NAVIGATION: NavGroup[] = [
         description: 'Create QR, Code 128, Code 39, EAN, UPC and generic PDF417 codes, singly or in batches.' },
       { key: 'analyzer', label: 'Barcode Analyzer', path: '/analyzer', icon: ScanLine,
         description: 'Upload images or PDFs, decode barcodes and inspect image quality.' },
-      { key: 'documents', label: 'Document Analysis', path: '/documents', icon: FileSearch,
+      { key: 'documents', label: 'Document Analysis', path: '/documents', icon: FileSearch, roles: ['ADMINISTRATOR', 'ANALYST', 'REVIEWER'],
         description: 'OCR, passport MRZ checks, SSN format checks and cross-document comparison.' },
       { key: 'test_lab', label: 'Testing Laboratory', path: '/test-lab', icon: FlaskConical,
         description: 'Run fixtures and regression tests, and compare expected with actual results.' },

@@ -216,7 +216,7 @@ def _summarise(report: AnalysisReport, quality_flags: list[str], expected: str |
     elif report.status == REVIEW:
         report.summary = first_bad.reason
         report.next_action = (
-            "Identity documents are handled in Document Analysis (Phase 7), which has stricter access and retention controls."
+            "Identity documents belong in Document Analysis, which has stricter access and retention controls."
             if report.sensitive else
             "Rescan straight-on, closer and in good light, then analyse again." if first_bad.consistent_reads < first_bad.attempts else
             "Review the barcodes in formats DocumentLab doesn't analyse; only their raw text is shown.")

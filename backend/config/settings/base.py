@@ -12,7 +12,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
 DEBUG = False
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
-APP_VERSION = "0.6.0"  # bumped at the end of each phase
+APP_VERSION = "0.8.0"  # bumped at the end of each phase
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     "apps.barcode_generator",
     "apps.documents",
     "apps.barcode_decoder",
+    "apps.document_analysis",
+    "apps.test_lab",
 ]
 
 MIDDLEWARE = [
@@ -110,6 +112,12 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min", "login": "5/min", "preview": "120/min", "upload": "30/min"},
 }
+
+# Identity documents: personal data is deleted this many days after analysis (set in .env if needed).
+DOCUMENT_RETENTION_DAYS = env.int("DOCUMENT_RETENTION_DAYS", default=30)
+
+# Testing Laboratory runs happen in a background thread so the page stays responsive.
+TEST_LAB_RUN_IN_BACKGROUND = env.bool("TEST_LAB_RUN_IN_BACKGROUND", default=True)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "DocumentLab API",

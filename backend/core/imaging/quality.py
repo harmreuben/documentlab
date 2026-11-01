@@ -17,7 +17,7 @@ import numpy as np
 MIN_LONG_SIDE_PX = 300       # images smaller than this rarely hold enough detail
 MIN_SHORT_SIDE_PX = 60       # stacked codes are long and thin, so the short side is allowed to be small
 BLUR_SHARPNESS_MIN = 100.0   # variance of the Laplacian at a 1000 px working size
-CONTRAST_RANGE_MIN = 0.35    # spread between the 5th and 95th brightness percentiles (0-1)
+CONTRAST_RANGE_MIN = 0.35    # spread between the 1st and 99th brightness percentiles (0-1)
 DARK_MEAN_MAX = 0.25         # mean brightness below this = underexposed
 EDGE_MARGIN_MIN_PX = 8       # a barcode closer than this to the edge may have lost its quiet zone
 SKEW_TOLERANCE_DEG = 5       # angles further than this from 0/90/180/270 are reported
@@ -73,8 +73,9 @@ def assess_image(image) -> QualityReport:
     working = cv2.resize(grey, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA) if scale < 1 else grey
     sharpness = float(cv2.Laplacian((working * 255).astype(np.uint8), cv2.CV_64F).var())
 
-    p5, p95 = np.percentile(grey, [5, 95])
-    contrast_range = float(p95 - p5)
+    # 1st/99th percentiles: documents are mostly blank background, so narrower percentiles miss the text.
+    p1, p99 = np.percentile(grey, [1, 99])
+    contrast_range = float(p99 - p1)
     mean = float(grey.mean())
     clipped = float((grey >= 0.995).mean())
 

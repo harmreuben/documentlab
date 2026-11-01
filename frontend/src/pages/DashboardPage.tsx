@@ -59,7 +59,8 @@ export function DashboardPage() {
             : `${data.counts.barcodes_failed_verification ?? 0} failed verification`} />
         <Figure label="Barcodes decoded" value={data.counts.barcodes_decoded}
           note={data.counts.barcodes_decoded === null ? 'Arrives with the Barcode Analyzer' : undefined} />
-        <Figure label="Documents processed" value={data.counts.documents_processed} note="Arrives with Document Analysis" />
+        <Figure label="Documents processed" value={data.counts.documents_processed}
+          note={data.counts.documents_processed === null ? 'Arrives with Document Analysis' : undefined} />
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

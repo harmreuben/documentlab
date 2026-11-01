@@ -18,6 +18,7 @@ describe('navigation', () => {
       expect(items).not.toContain('Audit Logs')
       expect(items).not.toContain('User Management')
       expect(items).toContain('Settings')
+      expect(items.includes('Document Analysis')).toBe(role === 'ANALYST' || role === 'REVIEWER')
     }
   })
 })
