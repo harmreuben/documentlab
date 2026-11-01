@@ -19,7 +19,7 @@ const summary: DashboardSummary = {
   users: null,
   activity: Array.from({ length: 14 }, (_, i) => ({ date: `2026-10-${String(17 + i).padStart(2, '0')}`, events: i % 3 })),
   recent_activity: [{ id: 1, created_at: '2026-10-30T11:00:00Z', username: 'ann', action: 'auth.login' }],
-  modules: [{ key: 'analyzer', name: 'Barcode Analyzer', phase: 6, status: 'planned' }],
+  modules: [{ key: 'documents', name: 'Document Analysis', phase: 7, status: 'planned' }],
 }
 
 function json(status: number, body: unknown) {
@@ -106,8 +106,8 @@ describe('signed-in pages', () => {
       '/api/auth/me/': () => json(200, analyst),
       '/api/dashboard/summary/': () => json(200, summary),
     })
-    renderAt('/analyzer')
+    renderAt('/documents')
     expect(await screen.findByText('This workspace is not built yet.')).toBeInTheDocument()
-    expect(await screen.findByText(/It arrives in Phase 6/)).toBeInTheDocument()
+    expect(await screen.findByText(/It arrives in Phase 7/)).toBeInTheDocument()
   })
 })

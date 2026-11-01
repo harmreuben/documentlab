@@ -17,6 +17,7 @@ export const ACTION_LABELS: Record<string, string> = {
   'barcode.generated': 'Generated a barcode',
   'barcode.batch_generated': 'Ran a barcode batch',
   'barcode.refused': 'Refused an identity layout',
+  'barcode.analysed': 'Analysed a file',
 }
 
 export function actionLabel(code: string): string {

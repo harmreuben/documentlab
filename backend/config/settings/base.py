@@ -12,7 +12,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
 DEBUG = False
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
-APP_VERSION = "0.5.0"  # bumped at the end of each phase
+APP_VERSION = "0.6.0"  # bumped at the end of each phase
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.dashboard",
     "apps.barcode_generator",
+    "apps.documents",
+    "apps.barcode_decoder",
 ]
 
 MIDDLEWARE = [
@@ -106,7 +108,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
         "rest_framework.throttling.ScopedRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min", "login": "5/min", "preview": "120/min"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min", "login": "5/min", "preview": "120/min", "upload": "30/min"},
 }
 
 SPECTACULAR_SETTINGS = {
