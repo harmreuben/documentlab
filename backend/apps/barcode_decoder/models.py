@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.barcode_generator.models import GeneratedBarcode
 from apps.documents.models import UploadedFile
+from apps.reviews.models import ReviewMixin
 
 _ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
@@ -24,7 +25,7 @@ class Status(models.TextChoices):
     NOT_CHECKED = "NOT_CHECKED", "Not checked"
 
 
-class BarcodeAnalysis(models.Model):
+class BarcodeAnalysis(ReviewMixin):
     reference = models.CharField(max_length=32, unique=True, default=new_analysis_reference, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="analyses")

@@ -1,5 +1,5 @@
 import {
-  Barcode, ClipboardCheck, FileSearch, FlaskConical, LayoutDashboard, ListChecks,
+  Barcode, ClipboardCheck, FileSearch, FlaskConical, Inbox, LayoutDashboard, ListChecks,
   ScanLine, ScrollText, Settings, Users, type LucideIcon,
 } from 'lucide-react'
 import type { Role } from './api/types'
@@ -42,6 +42,8 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Quality',
     items: [
+      { key: 'reviews', label: 'Review Queue', path: '/reviews', icon: Inbox, roles: ['ADMINISTRATOR', 'REVIEWER', 'ANALYST'],
+        description: 'Results that need a second person to check them.' },
       { key: 'rules', label: 'Validation Rules', path: '/rules', icon: ListChecks,
         description: 'Every validation rule, its version, severity and test coverage.' },
       { key: 'reports', label: 'Reports', path: '/reports', icon: ClipboardCheck,

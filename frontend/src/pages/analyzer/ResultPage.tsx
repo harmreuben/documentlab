@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { api } from '../../api/client'
 import type { Analysis, Check, DecodedBarcode } from '../../api/analyzer'
 import { STATUS, StatusBadge } from '../../components/StatusBadge'
+import { ReviewPanel } from '../../components/ReviewPanel'
 import { Loading, Notice, Panel } from '../../components/ui'
 import { cx, formatDateTime } from '../../lib/format'
 import { DownloadLinks } from '../generator/shared'
@@ -77,7 +78,9 @@ export function ResultPage() {
             </ul>
           </Panel>
 
-          <Panel title="File" aside={<DownloadLinks links={{ json: a.links.json, csv: a.links.csv }} compact />}>
+          <ReviewPanel kind="barcode" id={a.id} createdBy={a.created_by} review={a.review} queryKey={['analyzer', 'analysis', id]} />
+
+          <Panel title="File" aside={<DownloadLinks links={{ pdf: a.links.pdf, csv: a.links.csv, json: a.links.json }} compact />}>
             <dl className="space-y-2.5 text-sm">
               <Row label="Name" value={<span className="break-all">{a.upload.original_name}</span>} />
               <Row label="Type" value={`${a.upload.kind.toUpperCase()}, ${bytes(a.upload.size_bytes)}${a.upload.kind === 'pdf' ? `, ${a.upload.page_count} page${a.upload.page_count > 1 ? 's' : ''}` : ''}`} />
@@ -86,6 +89,7 @@ export function ResultPage() {
               {a.source_generated && <Row label="Source" value={`Generated barcode ${a.source_generated}`} />}
               <Row label="Analysed" value={`${formatDateTime(a.created_at)}${a.created_by ? ` by ${a.created_by}` : ''}, in ${a.duration_ms} ms`} />
               <Row label="Decoder" value={a.decoder} />
+              <Row label="Rule set" value={a.ruleset_version || 'Before rule versioning'} />
             </dl>
             {a.warnings.length > 0 && (
               <ul className="mt-4 space-y-1">{a.warnings.map((w) => <li key={w} className="text-xs text-review">{w}</li>)}</ul>

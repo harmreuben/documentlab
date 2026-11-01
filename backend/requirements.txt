@@ -28,3 +28,6 @@ reportlab>=4.0
 pytest>=8.0
 pytest-django>=4.8
 factory-boy>=3.3
+
+whitenoise>=6.6
+waitress>=3.0

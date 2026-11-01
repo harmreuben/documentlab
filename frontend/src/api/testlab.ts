@@ -75,7 +75,7 @@ export interface TestRun {
   errors: number
   new_failures: number
   fixed: number
-  versions: { app?: string; decoder?: string; ocr?: string }
+  versions: { app?: string; rules?: string; decoder?: string; ocr?: string }
   baseline: { id: number; reference: string } | null
   created_by: string | null
   created_at: string
@@ -85,7 +85,7 @@ export interface TestRun {
 
 export interface TestRunDetail extends TestRun {
   cases: CaseResult[]
-  links: { json: string; csv: string; junit: string }
+  links: { json: string; csv: string; junit: string; pdf: string }
 }
 
 export interface TestLabMeta {

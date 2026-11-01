@@ -2,7 +2,7 @@
 
 Each indicator is a measurement plus a plain-language finding. Glare is not detected:
 a simple brightness rule mistook white label backgrounds for glare, so it was removed
-rather than left to raise false alarms (see the Phase 10 limitations list). The thresholds are
+rather than left to raise false alarms (see docs/LIMITATIONS.md). The thresholds are
 practical rules of thumb for scanning, not standards; they are written out here so
 they can be reviewed and tuned, and each finding states the value it was based on.
 """
@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-# Thresholds (reviewed in Phase 10 against the Testing Laboratory's fixture set).
+# Thresholds (reviewed in Phase 10 against the Testing Laboratory's fixture set; see docs/LIMITATIONS.md).
 MIN_LONG_SIDE_PX = 300       # images smaller than this rarely hold enough detail
 MIN_SHORT_SIDE_PX = 60       # stacked codes are long and thin, so the short side is allowed to be small
 BLUR_SHARPNESS_MIN = 100.0   # variance of the Laplacian at a 1000 px working size
@@ -21,6 +21,7 @@ CONTRAST_RANGE_MIN = 0.35    # spread between the 1st and 99th brightness percen
 DARK_MEAN_MAX = 0.25         # mean brightness below this = underexposed
 EDGE_MARGIN_MIN_PX = 8       # a barcode closer than this to the edge may have lost its quiet zone
 SKEW_TOLERANCE_DEG = 5       # angles further than this from 0/90/180/270 are reported
+BLANK_RANGE_MAX = 0.02       # almost no difference between light and dark = a blank page, not a blurred one
 
 
 @dataclass
@@ -84,6 +85,10 @@ def assess_image(image) -> QualityReport:
     if max(width, height) < MIN_LONG_SIDE_PX or min(width, height) < MIN_SHORT_SIDE_PX:
         f.append(Finding("low_resolution", f"The image is only {width} × {height} px. Scan at a higher resolution "
                                            f"(at least {MIN_LONG_SIDE_PX} px on the long side)."))
+    if contrast_range < BLANK_RANGE_MAX:
+        # Sharpness and contrast are meaningless on an empty page; saying "blurred" would send people to refocus.
+        f.append(Finding("blank", "The page is blank or almost blank, so there is nothing on it to read."))
+        return report
     if sharpness < BLUR_SHARPNESS_MIN:
         f.append(Finding("blurred", f"The image looks blurred (sharpness {sharpness:.0f}; "
                                     f"below {BLUR_SHARPNESS_MIN:.0f} is usually too soft). Hold the camera steady or refocus."))

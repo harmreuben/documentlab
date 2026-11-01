@@ -89,6 +89,8 @@ class BarcodeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GeneratedBarcodeSerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):  # API schema generation, no signed-in user
+            return GeneratedBarcode.objects.none()
         qs = _visible(GeneratedBarcode.objects.select_related("created_by"), self.request.user)
         params = self.request.query_params
         if params.get("format"):
@@ -144,6 +146,8 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):  # API schema generation, no signed-in user
+            return GenerationBatch.objects.none()
         return _visible(GenerationBatch.objects.select_related("created_by"), self.request.user)
 
     @extend_schema(request={"multipart/form-data": {"type": "object", "properties": {

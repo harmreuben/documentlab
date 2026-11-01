@@ -32,9 +32,11 @@ class AnalysisViewSet(viewsets.ReadOnlyModelViewSet):
     throttle_scope = "upload"
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):  # API schema generation, no signed-in user
+            return BarcodeAnalysis.objects.none()
         qs = (BarcodeAnalysis.objects.select_related("created_by", "upload", "source_generated")
               .prefetch_related(Prefetch("barcodes", queryset=DecodedBarcode.objects.select_related("matched_generated"))))
-        if self.request.user.role != Role.ADMINISTRATOR:
+        if self.request.user.role not in (Role.ADMINISTRATOR, Role.REVIEWER):  # reviewers check other people's work
             qs = qs.filter(created_by=self.request.user)
         params = self.request.query_params
         if params.get("status"):
@@ -130,8 +132,12 @@ class AnalysisViewSet(viewsets.ReadOnlyModelViewSet):
             content, ctype, ext = export_csv(analysis).encode("utf-8-sig"), "text/csv", "csv"
         elif kind == "json":
             content, ctype, ext = export_json(analysis, AnalysisDetailSerializer(analysis).data).encode(), "application/json", "json"
+        elif kind == "pdf":
+            from apps.reports.builders import barcode_analysis_pdf
+            content, ctype, ext = barcode_analysis_pdf(analysis), "application/pdf", "pdf"
         else:
-            return Response({"detail": "Choose json or csv."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Choose json, csv or pdf."}, status=status.HTTP_400_BAD_REQUEST)
+        audit(request, "report.downloaded", analysis, {"report": "barcode_analysis", "type": kind, "reference": analysis.reference})
         response = HttpResponse(content, content_type=ctype)
         response["Content-Disposition"] = f'attachment; filename="{analysis.reference}.{ext}"'
         return response

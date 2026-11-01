@@ -60,6 +60,13 @@ def test_clean_generated_image_has_no_quality_findings():
     assert assess_image(img.barcode()).findings == []
 
 
+def test_a_blank_page_is_called_blank_not_blurred():
+    from PIL import Image
+    findings = assess_image(Image.new("RGB", (900, 600), "white")).findings
+    assert [f.code for f in findings] == ["blank"]
+    assert "blank" in findings[0].message
+
+
 def test_blur_and_low_contrast_are_reported():
     assert "blurred" in {f.code for f in assess_image(img.blurred(img.barcode())).findings}
     assert "low_contrast" in {f.code for f in assess_image(img.low_contrast(img.barcode())).findings}

@@ -5,9 +5,11 @@ from django.utils import timezone
 
 from apps.accounts.models import Role
 from apps.documents.services import store_upload
+from apps.reviews.services import initial_review_state
 from core.files import FileRejected, check_upload, load_pages
 from core.identity import compare as comparer
 from core.identity.analyse import analyse_document, analyse_mrz_text
+from core.rules.catalogue import RULESET_VERSION
 
 from .models import DocumentAnalysis, DocumentComparison
 
@@ -42,6 +44,7 @@ def _save(user, report, upload=None) -> DocumentAnalysis:
         summary=report.summary[:400], next_action=report.next_action[:300], checks=data["checks"],
         fields=report.fields, mrz=report.mrz, licence=report.licence, ocr=report.ocr, pages=report.pages,
         warnings=report.warnings, ocr_engine=report.ocr_engine[:80], duration_ms=report.duration_ms,
+        ruleset_version=RULESET_VERSION, review_state=initial_review_state(report.status),
     )
 
 

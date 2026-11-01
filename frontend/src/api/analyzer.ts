@@ -1,4 +1,5 @@
 // Types for /api/analyzer/ - kept in step with apps/barcode_decoder on the backend.
+import type { ReviewInfo } from './reviews'
 
 export type ResultStatus = 'PASS' | 'FAIL' | 'REVIEW_REQUIRED' | 'NOT_SUPPORTED' | 'UNAVAILABLE' | 'NOT_CHECKED'
 
@@ -80,7 +81,9 @@ export interface Analysis {
   duration_ms: number
   decoder: string
   barcodes: DecodedBarcode[]
-  links: { json: string; csv: string; pages?: string[] }
+  ruleset_version: string
+  review: ReviewInfo
+  links: { json: string; csv: string; pdf: string; pages?: string[] }
 }
 
 export interface AnalysisListItem {

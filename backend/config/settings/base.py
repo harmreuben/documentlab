@@ -12,7 +12,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
 DEBUG = False
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
-APP_VERSION = "0.8.0"  # bumped at the end of each phase
+APP_VERSION = "0.10.0"  # bumped at the end of each phase
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -31,14 +31,20 @@ INSTALLED_APPS = [
     "apps.barcode_decoder",
     "apps.document_analysis",
     "apps.test_lab",
+    "apps.reviews",
+    "apps.rules",
+    "apps.reports",
+    "apps.system",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.system.middleware.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.system.middleware.IdleTimeoutMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -96,6 +102,11 @@ SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 CSRF_COOKIE_SAMESITE = "Lax"
 X_FRAME_OPTIONS = "DENY"
+SESSION_IDLE_MINUTES = env.int("SESSION_IDLE_MINUTES", default=30)  # 0 turns the idle sign-out off
+
+# --- Sign-in protection: lock an account for a while after repeated failures ---
+LOGIN_LOCKOUT_ATTEMPTS = env.int("LOGIN_LOCKOUT_ATTEMPTS", default=5)
+LOGIN_LOCKOUT_MINUTES = env.int("LOGIN_LOCKOUT_MINUTES", default=15)
 
 # --- REST framework ---
 REST_FRAMEWORK = {
@@ -116,6 +127,18 @@ REST_FRAMEWORK = {
 # Identity documents: personal data is deleted this many days after analysis (set in .env if needed).
 DOCUMENT_RETENTION_DAYS = env.int("DOCUMENT_RETENTION_DAYS", default=30)
 
+# Backups (python manage.py backup_data). They contain personal data, so few are kept.
+BACKUP_DIR = Path(env("BACKUP_DIR", default=str(BASE_DIR / "backups")))
+BACKUP_KEEP = env.int("BACKUP_KEEP", default=14)
+
+# The built React app (npm run build), served by Django in production.
+FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+SERVE_FRONTEND = False  # production turns this on; in development Vite serves the app on port 5173
+
+# External verification. Empty = not configured, and checks report UNAVAILABLE.
+# Set to the dotted path of an adapter class supplied by an authorised provider (see docs/SECURITY.md).
+SSN_VERIFICATION_PROVIDER = env("SSN_VERIFICATION_PROVIDER", default="")
+
 # Testing Laboratory runs happen in a background thread so the page stays responsive.
 TEST_LAB_RUN_IN_BACKGROUND = env.bool("TEST_LAB_RUN_IN_BACKGROUND", default=True)
 
@@ -124,7 +147,16 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Analyse. Generate. Validate. Test. Report.",
     "VERSION": APP_VERSION,
     "SERVE_INCLUDE_SCHEMA": False,
+    # Several models have a "status" field with different choices; give each list its own name.
+    "ENUM_NAME_OVERRIDES": {
+        "ResultStatusEnum": "apps.barcode_decoder.models.Status",
+        "TestRunStatusEnum": "apps.test_lab.models.TEST_RUN_STATUSES",
+    },
 }
+
+# Preloading HSTS into browsers is for public websites, and is hard to undo. DocumentLab is an
+# internal tool, so it is deliberately not requested.
+SILENCED_SYSTEM_CHECKS = ["security.W021"]
 
 # --- Logging: sensitive keys are redacted before anything is written ---
 LOG_DIR = BASE_DIR / "logs"

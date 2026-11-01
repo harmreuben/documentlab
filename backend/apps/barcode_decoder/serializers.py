@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.reviews.services import review_info
+
 from .models import BarcodeAnalysis, DecodedBarcode
 
 
@@ -10,7 +12,7 @@ class DecodedBarcodeSerializer(serializers.ModelSerializer):
         model = DecodedBarcode
         exclude = ["analysis"]
 
-    def get_matched_generated(self, obj):
+    def get_matched_generated(self, obj) -> dict | None:
         g = obj.matched_generated
         if g is None:
             return None
@@ -38,9 +40,9 @@ class AnalysisListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BarcodeAnalysis
         fields = ["id", "reference", "created_at", "created_by", "file_name", "file_kind", "status",
-                  "summary", "barcode_count", "formats", "sensitive"]
+                  "summary", "barcode_count", "formats", "sensitive", "review_state"]
 
-    def get_formats(self, obj):
+    def get_formats(self, obj) -> list[str]:
         return sorted({b.format_name for b in obj.barcodes.all()})
 
 
@@ -50,16 +52,20 @@ class AnalysisDetailSerializer(serializers.ModelSerializer):
     barcodes = DecodedBarcodeSerializer(many=True)
     source_generated = serializers.CharField(source="source_generated.test_reference", default=None)
     links = serializers.SerializerMethodField()
+    review = serializers.SerializerMethodField()
 
     class Meta:
         model = BarcodeAnalysis
         fields = ["id", "reference", "created_at", "created_by", "upload", "source_generated", "expected_value",
                   "status", "summary", "next_action", "checks", "pages", "warnings", "sensitive",
-                  "duration_ms", "decoder", "barcodes", "links"]
+                  "duration_ms", "decoder", "barcodes", "ruleset_version", "review", "links"]
 
-    def get_links(self, obj):
+    def get_review(self, obj) -> dict:
+        return review_info(obj)
+
+    def get_links(self, obj) -> dict:
         base = f"/api/analyzer/analyses/{obj.pk}"
-        links = {"json": f"{base}/export/?type=json", "csv": f"{base}/export/?type=csv"}
+        links = {"json": f"{base}/export/?type=json", "csv": f"{base}/export/?type=csv", "pdf": f"{base}/export/?type=pdf"}
         if obj.upload.file_available:
             links["pages"] = [f"{base}/image/?page={p['page']}" for p in obj.pages]
         return links

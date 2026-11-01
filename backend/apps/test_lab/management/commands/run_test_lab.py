@@ -28,8 +28,10 @@ class Command(BaseCommand):
         try:
             with override_settings(TEST_LAB_RUN_IN_BACKGROUND=False):
                 run = start_run(None, scope, opts["note"])
-        except (RunInProgress, ValueError) as problem:
+        except RunInProgress as problem:
             raise CommandError(str(problem))
+        except ValueError as problem:
+            raise CommandError(f"{problem} To load them from here: python manage.py load_test_fixtures")
         for case in run.cases.all():
             mark = {"PASS": self.style.SUCCESS("PASS "), "FAIL": self.style.ERROR("FAIL "), "ERROR": self.style.ERROR("ERROR")}[case.outcome]
             change = "  (new failure)" if case.change == CaseResult.NEW_FAILURE else "  (fixed)" if case.change == CaseResult.FIXED else ""

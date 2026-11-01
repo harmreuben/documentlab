@@ -16,7 +16,7 @@ function allowedDestination(path: string, user: Me): string {
 const VERBS = ['Analyse.', 'Generate.', 'Validate.', 'Test.', 'Report.']
 
 export function LoginPage() {
-  const { user, login } = useAuth()
+  const { user, login, notice } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [username, setUsername] = useState('')
@@ -63,7 +63,7 @@ export function LoginPage() {
             <p className="mt-1.5 text-sm text-muted">Use the account your administrator created for you.</p>
           </div>
 
-          {error && <Notice tone="error">{error}</Notice>}
+          {error ? <Notice tone="error">{error}</Notice> : notice && <Notice>{notice}</Notice>}
 
           <label className="block">
             <span className="text-sm font-medium">Username</span>

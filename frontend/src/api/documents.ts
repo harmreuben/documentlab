@@ -1,5 +1,6 @@
 // Types for /api/documents/ - kept in step with apps/document_analysis on the backend.
 import type { ResultStatus } from './analyzer'
+import type { ReviewInfo } from './reviews'
 
 export interface IdCheck {
   category: string
@@ -54,7 +55,9 @@ export interface DocumentAnalysis {
   expires_at: string
   purged_at: string | null
   purge_reason: string
-  links: { pages: string[] }
+  ruleset_version: string
+  review: ReviewInfo
+  links: { pages: string[]; pdf: string }
 }
 
 export interface DocumentListItem {
@@ -108,4 +111,31 @@ export interface DocumentsMeta {
   types: { key: string; label: string }[]
   retention_days: number
   ocr: { available: boolean; engine: string }
+}
+
+export interface VerificationMeta {
+  available: boolean
+  provider: string | null
+  purposes: { key: string; label: string }[]
+  consent_methods: { key: string; label: string }[]
+}
+
+export interface SsnVerification {
+  id: number
+  created_at: string
+  created_by: string | null
+  masked: string
+  provider: string
+  outcome: 'match' | 'no_match' | 'error'
+  status: ResultStatus
+  mismatched: string[]
+  deceased: boolean | null
+  provider_reference: string
+  consent_method: string
+  consent_reference: string
+  consent_signed_on: string
+  purpose: string
+  purpose_label: string
+  summary: string
+  ruleset_version: string
 }

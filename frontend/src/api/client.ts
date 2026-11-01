@@ -45,6 +45,15 @@ export function messageFrom(body: unknown, fallback: string): string {
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
+/** Fired when the server signs the user out for inactivity, so the app can return to the sign-in page. */
+export const SESSION_EXPIRED_EVENT = 'documentlab:session-expired'
+
+function noticeExpiry(status: number, body: unknown) {
+  if (status === 401 && (body as { code?: string } | null)?.code === 'session_expired') {
+    window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT, { detail: messageFrom(body, 'You were signed out.') }))
+  }
+}
+
 /** POST a file upload (multipart form). The browser sets the multipart boundary itself. */
 export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
   const token = await ensureCsrfToken()
@@ -60,7 +69,10 @@ export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
     throw new ApiError(0, 'The DocumentLab server is not reachable. Check that Django is running on port 8000.', null)
   }
   const body = await response.json().catch(() => null)
-  if (!response.ok) throw new ApiError(response.status, messageFrom(body, `The upload failed (${response.status}).`), body)
+  if (!response.ok) {
+    noticeExpiry(response.status, body)
+    throw new ApiError(response.status, messageFrom(body, `The upload failed (${response.status}).`), body)
+  }
   return body as T
 }
 
@@ -85,6 +97,7 @@ export async function api<T>(path: string, options: { method?: string; body?: un
   if (response.status === 204) return undefined as T
   const body = await response.json().catch(() => null)
   if (!response.ok) {
+    noticeExpiry(response.status, body)
     const fallback =
       response.status === 403 ? 'You do not have permission to do that.'
       : response.status === 429 ? 'Too many attempts. Wait a minute and try again.'

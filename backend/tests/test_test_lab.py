@@ -6,6 +6,7 @@ from datetime import timedelta
 from xml.etree import ElementTree as ET
 
 import pytest
+from django.conf import settings
 from django.core.management import call_command
 from django.utils import timezone
 
@@ -14,6 +15,7 @@ from apps.audit.models import AuditEvent
 from apps.test_lab.models import CaseResult, Fixture, TestRun
 from apps.test_lab.services import load_builtins
 from core.ocr import engine as ocr
+from core.rules.catalogue import RULESET_VERSION
 from core.testlab import builtin, expect, runner
 
 from .images import AAMVA_LIKE, as_png, barcode, on_canvas, pdf417_raw
@@ -205,7 +207,7 @@ def test_run_scope_and_empty_scope(client_as):
     developer.post(FIXTURES + "load-builtin/")
     run = developer.post(RUNS, {"module": "documents", "tag": "typed"}, format="json").json()
     assert run["total"] == sum(1 for b in builtin.BUILTINS if b.module == "documents" and "typed" in b.tags)
-    assert run["versions"]["app"] == "0.8.0"
+    assert run["versions"]["app"] == settings.APP_VERSION and run["versions"]["rules"] == RULESET_VERSION
 
 
 def test_one_run_at_a_time_and_stale_runs_are_closed(client_as):
@@ -240,7 +242,9 @@ def test_exports(client_as):
     suite = ET.fromstring(developer.get(run["links"]["junit"]).content)
     assert (suite.get("tests"), suite.get("failures")) == ("2", "1")
     assert suite.find("testcase/failure").get("message") == "Barcodes found: expected 3, got 1"
-    assert developer.get(run["links"]["json"].replace("json", "pdf")).status_code == 400
+    assert developer.get(run["links"]["json"].replace("json", "xlsx")).status_code == 400
+    pdf = developer.get(run["links"]["pdf"])
+    assert pdf["Content-Type"] == "application/pdf" and pdf.content.startswith(b"%PDF")
 
 
 def test_command_exits_with_an_error_when_something_fails(client_as):

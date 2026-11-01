@@ -46,10 +46,9 @@ def test_non_admin_sees_only_their_own_activity(client_as, make_user):
     assert {e["username"] for e in data["recent_activity"]} == {"ann"}
 
 
-def test_unbuilt_modules_report_null_not_zero(client_as):
+def test_pending_reviews_is_a_real_count_once_reviews_exist(client_as):
     counts = client_as(Role.ADMINISTRATOR).get(URL).json()["counts"]
-    for key in ["pending_reviews"]:
-        assert counts[key] is None
+    assert counts["pending_reviews"] == 0  # built in Phase 9: zero now means "none waiting", not "not built"
 
 
 def test_activity_covers_fourteen_days_including_empty_ones(client_as):
@@ -67,12 +66,8 @@ def test_real_login_shows_up_on_the_dashboard(api, make_user):
     assert data["recent_activity"][0]["action"] == "auth.login"
 
 
-def test_module_list_marks_unbuilt_modules_as_planned(client_as):
+def test_module_list_shows_every_module_available(client_as):
     modules = {m["key"]: m for m in client_as(Role.READ_ONLY).get(URL).json()["modules"]}
-    assert len(modules) == 10
-    assert modules["dashboard"]["status"] == "available"
-    assert modules["generator"]["status"] == "available"
-    assert modules["analyzer"]["status"] == "available"
-    assert modules["documents"]["status"] == "available"
-    assert modules["test_lab"]["status"] == "available"
-    assert modules["rules"]["status"] == "planned"
+    assert len(modules) == 11
+    assert {m["status"] for m in modules.values()} == {"available"}
+    assert modules["reviews"]["phase"] == 9

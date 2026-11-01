@@ -33,7 +33,8 @@ const base: Analysis = {
   ],
   pages: [{ page: 1, width: 523, height: 274, sharpness: 11000, contrast_range: 1, mean_brightness: 0.8, findings: [] }],
   warnings: [], sensitive: false, duration_ms: 24, decoder: 'zxing-cpp 3.1.1', barcodes: [ean],
-  links: { json: '/json', csv: '/csv', pages: ['/api/analyzer/analyses/5/image/?page=1'] },
+  links: { json: '/json', csv: '/csv', pdf: '/pdf', pages: ['/api/analyzer/analyses/5/image/?page=1'] },
+  review: { review_state: '', review_label: 'Not needed', reviewed_by: null, reviewed_at: null, review_note: '' }, ruleset_version: '2026.11.1',
 }
 
 const withheld: Analysis = {
@@ -41,7 +42,7 @@ const withheld: Analysis = {
   summary: "This barcode holds data laid out like a driver's licence, ID card or passport.",
   next_action: 'Identity documents are handled in Document Analysis (Phase 7).',
   upload: { ...base.upload, file_available: false, file_removed_reason: 'Removed: the file contained identity-document data.' },
-  links: { json: '/json', csv: '/csv' },
+  links: { json: '/json', csv: '/csv', pdf: '/pdf' },
   barcodes: [{ ...ean, format_name: 'PDF417', text: null, status: 'REVIEW_REQUIRED', expected_match: null,
     interpretation: { ...ean.interpretation, kind: 'identity_document', summary: 'Identity document data', data_check: 'REVIEW_REQUIRED',
       data_detail: 'It is not displayed or stored by the Barcode Analyzer.', fields: [], sensitive: true } }],

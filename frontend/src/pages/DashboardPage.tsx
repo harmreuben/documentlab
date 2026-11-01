@@ -49,7 +49,7 @@ export function DashboardPage() {
         {system && <Figure label="Failed sign-ins in the last 7 days" value={data.counts.failed_logins_7d} />}
         {system && data.users
           ? <Figure label="Active users" value={data.users.active} note={`${data.users.total} accounts in total`} />
-          : <Figure label="Pending reviews" value={data.counts.pending_reviews} note="Arrives with review workflows" />}
+          : <Figure label="Pending reviews" value={data.counts.pending_reviews} />}
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">

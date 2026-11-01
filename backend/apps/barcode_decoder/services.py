@@ -10,8 +10,10 @@ from django.db import transaction
 from apps.accounts.models import Role
 from apps.barcode_generator.models import GeneratedBarcode
 from apps.documents.services import store_upload
+from apps.reviews.services import initial_review_state
 from core.barcodes.analyse import analyse
 from core.files import FileRejected, check_upload, load_pages
+from core.rules.catalogue import RULESET_VERSION
 
 from .models import BarcodeAnalysis, DecodedBarcode
 
@@ -44,6 +46,7 @@ def run_analysis(*, user, name: str, data: bytes, expected: str = "", source_gen
         status=report.status, summary=report.summary[:300], next_action=report.next_action[:300],
         checks=[c.as_dict() for c in report.checks], pages=report.pages, warnings=report.warnings,
         sensitive=report.sensitive, duration_ms=report.duration_ms, decoder=report.decoder,
+        ruleset_version=RULESET_VERSION, review_state=initial_review_state(report.status),
     )
 
     texts = set()

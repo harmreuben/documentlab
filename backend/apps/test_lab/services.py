@@ -19,6 +19,7 @@ from django.utils import timezone
 from core.barcodes import decode
 from core.files import FileRejected, check_upload
 from core.ocr import engine as ocr
+from core.rules.catalogue import RULESET_VERSION
 from core.testlab import builtin, expect, runner
 
 from .models import CaseResult, Fixture, TestRun
@@ -81,7 +82,7 @@ def load_builtins(user=None) -> tuple[int, int]:
 
 def versions() -> dict:
     _, engine = ocr.status()
-    return {"app": settings.APP_VERSION, "decoder": decode.decoder_version(), "ocr": engine}
+    return {"app": settings.APP_VERSION, "rules": RULESET_VERSION, "decoder": decode.decoder_version(), "ocr": engine}
 
 
 def mark_stale_runs() -> int:

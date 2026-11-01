@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Role, User
+from apps.reviews.services import pending_count
 from apps.audit.models import AuditEvent
 from apps.barcode_decoder.models import DecodedBarcode
 from apps.barcode_generator.models import GeneratedBarcode
@@ -79,7 +80,7 @@ class DashboardSummaryView(APIView):
                 "barcodes_decoded": decoded.count(),
                 "documents_processed": documents.count(),
                 # Not built yet - null until its phase is finished.
-                "pending_reviews": None,
+                "pending_reviews": pending_count(user),
             },
             "users": users,
             "activity": activity,

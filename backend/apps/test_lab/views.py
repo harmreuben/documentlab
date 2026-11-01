@@ -229,15 +229,16 @@ class RunViewSet(viewsets.ReadOnlyModelViewSet):
         audit(request, "testlab.run_started", run, {"reference": run.reference, "fixtures": run.total, "scope": scope})
         return Response(RunDetailSerializer(self.get_queryset().get(pk=run.pk)).data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(parameters=[OpenApiParameter("type", str, enum=["json", "csv", "junit"])])
+    @extend_schema(parameters=[OpenApiParameter("type", str, enum=["json", "csv", "junit", "pdf"])])
     @action(detail=True, methods=["get"])
     def export(self, request, pk=None):
         run = self.get_object()
         kind = request.query_params.get("type", "json")
+        from apps.reports.builders import test_run_pdf
         builders = {"json": (export_json, "application/json", "json"), "csv": (export_csv, "text/csv; charset=utf-8", "csv"),
-                    "junit": (export_junit, "application/xml", "xml")}
+                    "junit": (export_junit, "application/xml", "xml"), "pdf": (test_run_pdf, "application/pdf", "pdf")}
         if kind not in builders:
-            return Response({"detail": "Choose json, csv or junit."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Choose json, csv, junit or pdf."}, status=status.HTTP_400_BAD_REQUEST)
         build, content_type, extension = builders[kind]
         response = HttpResponse(build(run), content_type=content_type)
         suffix = "-junit" if kind == "junit" else ""

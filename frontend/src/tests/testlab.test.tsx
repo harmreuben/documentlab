@@ -24,7 +24,7 @@ const run: TestRunDetail = {
   passed: 1, failed: 1, errors: 0, new_failures: 1, fixed: 0, versions: { app: '0.8.0', decoder: 'zxing-cpp 3.1.1', ocr: 'Tesseract 5.3.4' },
   baseline: { id: 8, reference: 'RUN-20261031-XYZ987' }, created_by: 'dev', created_at: '2026-11-01T10:00:00Z',
   finished_at: '2026-11-01T10:00:03Z', duration_ms: 3100,
-  links: { json: '/j', csv: '/c', junit: '/x' },
+  links: { json: '/j', csv: '/c', junit: '/x', pdf: '/p' },
   cases: [
     { id: 31, fixture: 4, position: 1, fixture_name: 'Shelf label', module: 'analyzer', outcome: 'FAIL', change: 'new_failure',
       previous_outcome: 'PASS', expected: { barcode_count: 2 }, error: '', duration_ms: 120,

@@ -1,14 +1,15 @@
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import extend_schema
-from rest_framework import status, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import record
+from apps.system import lockout
 
 from .models import User
 from .permissions import IsAdministrator
@@ -26,9 +27,25 @@ class CsrfView(APIView):
         return Response({"detail": "CSRF cookie set."})
 
 
+class _PlainThrottled(exceptions.Throttled):
+    """Keeps the Retry-After header but not DRF's extra "Expected available in N seconds" sentence."""
+    extra_detail_singular = extra_detail_plural = ""
+
+    def __init__(self, wait=None, detail=None):
+        super().__init__(wait=wait, detail=detail)
+        self.detail = exceptions.ErrorDetail(str(self.detail).strip(), self.default_code)
+
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "login"  # 5 attempts per minute per client
+
+    def throttled(self, request, wait):
+        # DRF's default wording ("Request was throttled") is meant for programmers, not people signing in.
+        seconds = max(1, int(wait or 60))
+        raise _PlainThrottled(wait=wait, detail=(
+            f"Too many sign-in attempts from this computer. Wait {seconds} second{'s' if seconds != 1 else ''} "
+            "and try again."))
 
     @extend_schema(request=LoginSerializer, responses={200: MeSerializer})
     def post(self, request):
@@ -37,6 +54,11 @@ class LoginView(APIView):
         SessionAuthentication().enforce_csrf(request)
         data = LoginSerializer(data=request.data)
         data.is_valid(raise_exception=True)
+        until = lockout.locked_until(data.validated_data["username"])
+        if until:
+            # The password isn't even checked while the account is locked.
+            record(request, "auth.login_locked", username=data.validated_data["username"][:150])
+            return Response({"detail": lockout.message(until)}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         user = authenticate(request, **data.validated_data)
         if user is None:
             # Same message whether the username or the password was wrong.

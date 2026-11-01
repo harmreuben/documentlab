@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
 import type { Health } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Loading, PageHeader, Panel } from '../components/ui'
+import { Loading, Notice, PageHeader, Panel } from '../components/ui'
+import { StatusBadge } from '../components/StatusBadge'
+import type { ResultStatus } from '../api/analyzer'
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -50,6 +52,37 @@ export function SettingsPage() {
           )}
         </Panel>
       </div>
+      {user?.role === 'ADMINISTRATOR' && <SecurityStatus />}
     </>
+  )
+}
+
+interface StatusItem { key: string; label: string; status: ResultStatus; detail: string; action: string }
+
+function SecurityStatus() {
+  const status = useQuery({ queryKey: ['system', 'status'], queryFn: () => api<{ status: ResultStatus; items: StatusItem[]; checked_at: string }>('/api/system/status/') })
+  return (
+    <Panel title="Security and readiness" className="mt-6" aside={status.data && <StatusBadge status={status.data.status} />}>
+      {status.isPending ? <Loading /> : status.isError ? <Notice tone="error">{status.error.message}</Notice> : (
+        <>
+          <ul className="divide-y divide-rule">
+            {status.data.items.map((item) => (
+              <li key={item.key} className="flex items-start justify-between gap-4 py-3 first:pt-0">
+                <div className="text-sm">
+                  <span className="font-medium">{item.label}</span>
+                  <span className="mt-0.5 block text-muted">{item.detail}</span>
+                  {item.action && <span className="mt-1 block text-xs">{item.action}</span>}
+                </div>
+                <StatusBadge status={item.status} />
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 border-t border-rule pt-3 text-xs text-faint">
+            Measured from this server's settings when the page loaded. Development mode always shows problems here;
+            run with production settings (docs/DEPLOYMENT.md) for real use.
+          </p>
+        </>
+      )}
+    </Panel>
   )
 }

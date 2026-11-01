@@ -64,12 +64,14 @@ class Fixture(models.Model):
             return handle.read()
 
 
+TEST_RUN_STATUSES = [("RUNNING", "Running"), ("COMPLETE", "Complete"), ("INTERRUPTED", "Interrupted")]
+
+
 class TestRun(models.Model):
     RUNNING, COMPLETE, INTERRUPTED = "RUNNING", "COMPLETE", "INTERRUPTED"
 
     reference = models.CharField(max_length=32, unique=True, default=new_run_reference)
-    status = models.CharField(max_length=12, default=RUNNING,
-                              choices=[(RUNNING, "Running"), (COMPLETE, "Complete"), (INTERRUPTED, "Interrupted")])
+    status = models.CharField(max_length=12, default=RUNNING, choices=TEST_RUN_STATUSES)
     scope = models.JSONField(default=dict, blank=True)     # {"module": ..., "tag": ..., "fixture_ids": [...]}
     note = models.CharField(max_length=200, blank=True)
     total = models.PositiveIntegerField(default=0)

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { api } from '../../api/client'
 import type { DocumentAnalysis, IdCheck } from '../../api/documents'
 import { useAuth } from '../../auth/AuthContext'
+import { ReviewPanel } from '../../components/ReviewPanel'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Button, Loading, Notice, Panel } from '../../components/ui'
 import { cx, formatDateTime } from '../../lib/format'
@@ -67,7 +68,10 @@ export function DocumentResultPage() {
       </header>
 
       {d.purged_at ? (
-        <Notice>Personal data was deleted on {longDate(d.purged_at)} ({d.purge_reason}). Only the reference, document type and check results remain.</Notice>
+        <div className="space-y-6">
+          <Notice>Personal data was deleted on {longDate(d.purged_at)} ({d.purge_reason}). Only the reference, document type and check results remain.</Notice>
+          <ReviewPanel kind="document" id={d.id} createdBy={d.created_by} review={d.review} purged queryKey={['documents', 'analysis', id]} />
+        </div>
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div className="space-y-6">
@@ -128,13 +132,16 @@ export function DocumentResultPage() {
                 ))}
               </div>
             </Panel>
-            <Panel title="Record">
+            <ReviewPanel kind="document" id={d.id} createdBy={d.created_by} review={d.review} queryKey={['documents', 'analysis', id]} />
+            <Panel title="Record" aside={<a href={d.links.pdf} download className="text-xs font-medium text-electric hover:underline">PDF report</a>}>
               <dl className="space-y-2 text-sm">
                 <div className="grid grid-cols-[7rem_1fr] gap-3"><dt className="text-muted">Analysed</dt><dd>{formatDateTime(d.created_at)}{d.created_by ? ` by ${d.created_by}` : ''}</dd></div>
                 {d.upload && <div className="grid grid-cols-[7rem_1fr] gap-3"><dt className="text-muted">File</dt><dd className="break-all">{d.upload.original_name} ({d.upload.kind.toUpperCase()})</dd></div>}
                 {d.ocr_engine && <div className="grid grid-cols-[7rem_1fr] gap-3"><dt className="text-muted">OCR</dt><dd>{d.ocr_engine}</dd></div>}
+                <div className="grid grid-cols-[7rem_1fr] gap-3"><dt className="text-muted">Rule set</dt><dd>{d.ruleset_version || 'Before rule versioning'}</dd></div>
                 <div className="grid grid-cols-[7rem_1fr] gap-3"><dt className="text-muted">Data deleted</dt><dd>{longDate(d.expires_at)}</dd></div>
               </dl>
+              <p className="mt-3 text-xs text-faint">The PDF report includes this document's personal data and is marked confidential.</p>
               {canDelete && (
                 <div className="mt-4 border-t border-rule pt-4">
                   {remove.isError && <div className="mb-3"><Notice tone="error">{remove.error.message}</Notice></div>}

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { api, apiUpload } from '../../api/client'
-import type { Comparison, DocumentAnalysis, DocumentListItem, DocumentsMeta, SsnResult } from '../../api/documents'
+import type { Comparison, DocumentAnalysis, DocumentListItem, DocumentsMeta, SsnResult, SsnVerification, VerificationMeta } from '../../api/documents'
 import type { Page } from '../../api/types'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Button, Loading, Notice, PageHeader, Panel } from '../../components/ui'
@@ -370,6 +370,7 @@ function SsnTab() {
             {result.statement && <p className="mt-4 text-xs text-muted">{result.statement}</p>}
           </Panel>
         )}
+        <VerifyPanel />
       </div>
       <Panel title="Recent checks">
         {!history.data?.results.length ? <p className="text-sm text-muted">No checks yet.</p> : (
@@ -385,5 +386,116 @@ function SsnTab() {
         )}
       </Panel>
     </div>
+  )
+}
+
+/* ---------------- External verification (only when an authorised provider is configured) ---------------- */
+
+const EMPTY_REQUEST = { number: '', first_name: '', last_name: '', birth_date: '', consent_method: '', consent_reference: '',
+  consent_signed_on: '', purpose: '' }
+
+function VerifyPanel() {
+  const queryClient = useQueryClient()
+  const meta = useQuery({ queryKey: ['documents', 'verification-meta'], queryFn: () => api<VerificationMeta>('/api/documents/ssn-verifications/meta/') })
+  const history = useQuery({ queryKey: ['documents', 'verifications'], enabled: !!meta.data?.available,
+    queryFn: () => api<Page<SsnVerification>>('/api/documents/ssn-verifications/') })
+  const [form, setForm] = useState(EMPTY_REQUEST)
+  const [confirmed, setConfirmed] = useState(false)
+  const [result, setResult] = useState<SsnVerification | null>(null)
+  const run = useMutation({
+    mutationFn: (body: typeof EMPTY_REQUEST) => api<SsnVerification>('/api/documents/ssn-verifications/', {
+      method: 'POST', body: { ...body, consent_confirmed: true } }),
+    onSuccess: (r) => { setResult(r); queryClient.invalidateQueries({ queryKey: ['documents', 'verifications'] }) },
+  })
+
+  if (meta.isPending) return null
+  if (!meta.data?.available) {
+    return (
+      <Panel title="Check who the number belongs to">
+        <p className="text-sm text-muted">
+          No authorised verification provider is connected, so DocumentLab can't check whether a number was issued to a
+          particular person. Only organisations that qualify for a service such as the SSA's eCBSV can connect one, with each
+          person's signed consent. An administrator can see the setup in the security status on the Settings page.
+        </p>
+      </Panel>
+    )
+  }
+
+  const set = (key: keyof typeof EMPTY_REQUEST) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [key]: e.target.value }))
+  const ready = confirmed && Object.values(form).every((v) => v.trim())
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    const body = form
+    setForm((f) => ({ ...f, number: '' }))  // the full number leaves the screen once sent
+    run.mutate(body)
+  }
+
+  return (
+    <Panel title={`Check with ${meta.data.provider}`}>
+      <form onSubmit={submit} className="space-y-4">
+        <p className="text-sm text-muted">Sends the number, name and date of birth to {meta.data.provider}. DocumentLab keeps only the last four digits, the consent details and the answer.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-sm"><span className="mb-1 block font-medium">Social Security Number</span>
+            <input value={form.number} onChange={set('number')} inputMode="numeric" autoComplete="off" maxLength={11} placeholder="AAA-GG-SSSS"
+              className={`${inputClass} h-9 tabular-nums`} /></label>
+          <label className="text-sm"><span className="mb-1 block font-medium">Date of birth</span>
+            <input type="date" value={form.birth_date} onChange={set('birth_date')} className={`${inputClass} h-9`} /></label>
+          <label className="text-sm"><span className="mb-1 block font-medium">First name</span>
+            <input value={form.first_name} onChange={set('first_name')} autoComplete="off" className={`${inputClass} h-9`} /></label>
+          <label className="text-sm"><span className="mb-1 block font-medium">Last name</span>
+            <input value={form.last_name} onChange={set('last_name')} autoComplete="off" className={`${inputClass} h-9`} /></label>
+        </div>
+        <fieldset className="space-y-4 rounded-md border border-rule p-4">
+          <legend className="px-1 text-sm font-medium">The person's consent</legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm"><span className="mb-1 block">How it was given</span>
+              <select value={form.consent_method} onChange={set('consent_method')} className={`${inputClass} h-9`}>
+                <option value="">Choose…</option>
+                {meta.data.consent_methods.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+              </select></label>
+            <label className="text-sm"><span className="mb-1 block">Date signed</span>
+              <input type="date" value={form.consent_signed_on} onChange={set('consent_signed_on')} className={`${inputClass} h-9`} /></label>
+            <label className="text-sm"><span className="mb-1 block">Consent form reference</span>
+              <input value={form.consent_reference} onChange={set('consent_reference')} maxLength={80} placeholder="e.g. CF-2026-0042" className={`${inputClass} h-9`} /></label>
+            <label className="text-sm"><span className="mb-1 block">Purpose on the form</span>
+              <select value={form.purpose} onChange={set('purpose')} className={`${inputClass} h-9`}>
+                <option value="">Choose…</option>
+                {meta.data.purposes.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select></label>
+          </div>
+          <label className="flex items-start gap-2.5 text-sm">
+            <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-electric" />
+            <span>The person signed this consent for this check, and it's on file under the reference above.</span>
+          </label>
+        </fieldset>
+        {run.isError && <Notice tone="error">{run.error.message}</Notice>}
+        <Button type="submit" variant="primary" disabled={!ready || run.isPending}>{run.isPending ? 'Asking the provider…' : 'Check with provider'}</Button>
+      </form>
+      {result && (
+        <div className="mt-5 border-t border-rule pt-4">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-sm">{result.summary}</p>
+            <StatusBadge status={result.status} />
+          </div>
+          <p className="mt-2 text-xs text-muted">{result.masked} · consent {result.consent_reference}{result.provider_reference ? ` · provider reference ${result.provider_reference}` : ''}</p>
+          {result.deceased && <p className="mt-2 text-sm font-medium text-review">The provider reports a death record for this number.</p>}
+        </div>
+      )}
+      {!!history.data?.results.length && (
+        <div className="mt-5 border-t border-rule pt-4">
+          <h3 className="mb-2 text-xs font-medium text-muted">Recent provider checks</h3>
+          <ul className="divide-y divide-rule">
+            {history.data.results.slice(0, 5).map((h) => (
+              <li key={h.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <span className="font-mono">{h.masked}</span>
+                <span className="text-xs text-muted">{h.consent_reference} · {formatDateTime(h.created_at)}</span>
+                <StatusBadge status={h.status} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Panel>
   )
 }

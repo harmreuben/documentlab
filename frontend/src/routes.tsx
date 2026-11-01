@@ -22,7 +22,7 @@ function adminOnly(element: ReactNode) {
 }
 
 // Workspaces that are not built yet. Each moves to a real page as its phase is finished.
-const PLANNED = ['rules', 'reports']
+const PLANNED: string[] = []
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -40,6 +40,9 @@ export const routes: RouteObject[] = [
       { path: 'documents/:id', element: identityOnly(page(() => import('./pages/documents/DocumentResultPage'), 'DocumentResultPage')) },
       { path: 'test-lab', element: page(() => import('./pages/test-lab/TestLabPage'), 'TestLabPage') },
       { path: 'test-lab/runs/:id', element: page(() => import('./pages/test-lab/RunPage'), 'RunPage') },
+      { path: 'rules', element: page(() => import('./pages/rules/RulesPage'), 'RulesPage') },
+      { path: 'reviews', element: <RequireAuth roles={['ADMINISTRATOR', 'REVIEWER', 'ANALYST']}>{page(() => import('./pages/reviews/ReviewQueuePage'), 'ReviewQueuePage')}</RequireAuth> },
+      { path: 'reports', element: page(() => import('./pages/reports/ReportsPage'), 'ReportsPage') },
       ...ALL_NAV_ITEMS.filter((item) => PLANNED.includes(item.key)).map((item) => ({
         path: item.path.slice(1),
         element: <ModulePage item={item} />,

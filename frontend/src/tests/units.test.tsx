@@ -8,8 +8,8 @@ const labels = (role: Parameters<typeof visibleNavigation>[0]) =>
   visibleNavigation(role).flatMap((g) => g.items.map((i) => i.label))
 
 describe('navigation', () => {
-  it('shows all ten sections to administrators', () => {
-    expect(labels('ADMINISTRATOR')).toHaveLength(10)
+  it('shows all eleven sections to administrators', () => {
+    expect(labels('ADMINISTRATOR')).toHaveLength(11)
   })
 
   it('hides administration pages from other roles', () => {
@@ -19,6 +19,7 @@ describe('navigation', () => {
       expect(items).not.toContain('User Management')
       expect(items).toContain('Settings')
       expect(items.includes('Document Analysis')).toBe(role === 'ANALYST' || role === 'REVIEWER')
+      expect(items.includes('Review Queue')).toBe(role === 'ANALYST' || role === 'REVIEWER')
     }
   })
 })

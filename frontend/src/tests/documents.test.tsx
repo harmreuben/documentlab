@@ -40,7 +40,8 @@ const passport: DocumentAnalysis = {
   },
   licence: null, ocr: [], pages: [], warnings: [], ocr_engine: '', duration_ms: 3,
   authenticity: { status: 'NOT_CHECKED', detail: "These checks can't show that the document is genuine." },
-  upload: null, expires_at: '2026-12-01T10:00:00Z', purged_at: null, purge_reason: '', links: { pages: [] },
+  upload: null, expires_at: '2026-12-01T10:00:00Z', purged_at: null, purge_reason: '', links: { pages: [], pdf: '/pdf' },
+  review: { review_state: '', review_label: 'Not needed', reviewed_by: null, reviewed_at: null, review_note: '' }, ruleset_version: '2026.11.1',
 }
 
 function json(status: number, body: unknown) {
@@ -114,6 +115,7 @@ describe('Document Analysis', () => {
       checks: [{ category: 'data_format', code: 'ssn.area', name: 'Area number', status: 'PASS', detail: 'Allowed.' }],
       statement: "A valid format doesn't show that the number was issued or who it belongs to." }
     backend(person('REVIEWER'), {
+      '/api/documents/ssn-verifications/meta/': () => json(200, { available: false, provider: null, purposes: [], consent_methods: [] }),
       '/api/documents/ssn-checks/': (init) => init?.method === 'POST' ? json(201, result) : json(200, { count: 0, next: null, previous: null, results: [] }),
     })
     open('/documents?tab=ssn')

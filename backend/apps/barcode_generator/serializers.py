@@ -32,7 +32,7 @@ class GeneratedBarcodeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_downloads(self, obj):
+    def get_downloads(self, obj) -> dict:
         base = f"/api/generator/barcodes/{obj.pk}/download/"
         return {kind: f"{base}?type={kind}" for kind in ("png", "svg", "pdf")}
 
@@ -47,6 +47,6 @@ class GenerationBatchSerializer(serializers.ModelSerializer):
                   "options", "report", "downloads"]
         read_only_fields = fields
 
-    def get_downloads(self, obj):
+    def get_downloads(self, obj) -> dict:
         base = f"/api/generator/batches/{obj.pk}/download/"
         return {"zip": f"{base}?type=zip", "pdf": f"{base}?type=pdf", "csv": f"{base}?type=csv"}

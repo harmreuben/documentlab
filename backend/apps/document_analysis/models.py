@@ -12,6 +12,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.documents.models import UploadedFile
+from apps.reviews.models import ReviewMixin, ReviewState
 
 _ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
@@ -49,7 +50,7 @@ class PurgeableMixin(models.Model):
         return self.purged_at is not None
 
 
-class DocumentAnalysis(PurgeableMixin):
+class DocumentAnalysis(ReviewMixin, PurgeableMixin):
     reference = models.CharField(max_length=32, unique=True, default=new_document_reference, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+")
@@ -85,6 +86,9 @@ class DocumentAnalysis(PurgeableMixin):
         self.fields, self.mrz, self.licence, self.ocr, self.pages, self.warnings = {}, None, None, [], [], []
         self.summary = f"Personal data deleted ({reason})."
         self.next_action = "None."
+        self.review_note = ""  # a note may quote the document
+        if self.review_state == ReviewState.PENDING:
+            self.review_state = ReviewState.EXPIRED
         self.purged_at, self.purge_reason = timezone.now(), reason[:120]
         self.save()
 
@@ -119,6 +123,31 @@ class SsnCheck(models.Model):
     format_valid = models.BooleanField()
     status = models.CharField(max_length=16)
     checks = models.JSONField(default=list)
+    ruleset_version = models.CharField(max_length=20, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+
+class SsnVerification(models.Model):
+    """One request to an external provider. Keeps the consent and the answer, never the full number,
+    the name or the date of birth that were sent."""
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+")
+    masked = models.CharField(max_length=11)
+    provider = models.CharField(max_length=80)
+    outcome = models.CharField(max_length=10)          # match | no_match | error
+    status = models.CharField(max_length=16)           # PASS | FAIL | UNAVAILABLE
+    mismatched = models.JSONField(default=list)        # field names only
+    deceased = models.BooleanField(null=True)
+    provider_reference = models.CharField(max_length=80, blank=True)
+    provider_message = models.CharField(max_length=200, blank=True)
+    consent_method = models.CharField(max_length=24)
+    consent_reference = models.CharField(max_length=80)
+    consent_signed_on = models.DateField()
+    purpose = models.CharField(max_length=24)
+    ruleset_version = models.CharField(max_length=20, blank=True)
 
     class Meta:
         ordering = ["-created_at", "-id"]

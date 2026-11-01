@@ -60,7 +60,7 @@ export function RunPage() {
           <p className="mt-3 text-sm text-review">It stopped before every fixture had a result, usually because the server was restarted. Start a new run.</p>
         )}
         <dl className="mt-4 grid gap-x-8 gap-y-2 border-t border-rule pt-3 text-xs sm:grid-cols-3">
-          <div><dt className="text-muted">Build</dt><dd>DocumentLab {r.versions.app ?? '?'} · {r.versions.decoder ?? '?'}</dd></div>
+          <div><dt className="text-muted">Build</dt><dd>DocumentLab {r.versions.app ?? '?'}{r.versions.rules ? ` · rules ${r.versions.rules}` : ''} · {r.versions.decoder ?? '?'}</dd></div>
           <div><dt className="text-muted">OCR</dt><dd>{r.versions.ocr ?? '?'}</dd></div>
           <div><dt className="text-muted">Compared with</dt><dd>{r.baseline
             ? <Link to={`/test-lab/runs/${r.baseline.id}`} className="font-mono text-electric hover:underline">{r.baseline.reference}</Link>
@@ -79,6 +79,7 @@ export function RunPage() {
 
       <Panel title="Results" aside={
         <span className="flex gap-3 text-xs">
+          <a href={r.links.pdf} className="text-electric hover:underline">PDF</a>
           <a href={r.links.csv} className="text-electric hover:underline">CSV</a>
           <a href={r.links.json} className="text-electric hover:underline">JSON</a>
           <a href={r.links.junit} className="text-electric hover:underline">JUnit XML</a>

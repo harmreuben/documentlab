@@ -43,20 +43,20 @@ class FixtureSerializer(serializers.ModelSerializer):
                   "original_name", "file_kind", "size_bytes", "mrz_text", "options", "expected", "active",
                   "created_by", "created_at", "updated_at", "last_result", "links"]
 
-    def get_module_label(self, obj):
+    def get_module_label(self, obj) -> str:
         return expect.MODULES.get(obj.module, obj.module)
 
-    def get_created_by(self, obj):
+    def get_created_by(self, obj) -> str | None:
         return obj.created_by.get_username() if obj.created_by else None
 
-    def get_last_result(self, obj):
+    def get_last_result(self, obj) -> dict | None:
         case = obj.results.select_related("run").order_by("-run__created_at", "-id").first()
         if case is None:
             return None
         return {"outcome": case.outcome, "run_id": case.run_id, "run_reference": case.run.reference,
                 "at": case.run.created_at}
 
-    def get_links(self, obj):
+    def get_links(self, obj) -> dict:
         return {"file": f"/api/test-lab/fixtures/{obj.pk}/file/" if obj.file else None}
 
 
@@ -122,10 +122,10 @@ class RunListSerializer(serializers.ModelSerializer):
         fields = ["id", "reference", "status", "scope", "note", "total", "done", "passed", "failed", "errors",
                   "new_failures", "fixed", "versions", "baseline", "created_by", "created_at", "finished_at", "duration_ms"]
 
-    def get_created_by(self, obj):
+    def get_created_by(self, obj) -> str | None:
         return obj.created_by.get_username() if obj.created_by else None
 
-    def get_baseline(self, obj):
+    def get_baseline(self, obj) -> dict | None:
         return {"id": obj.baseline_id, "reference": obj.baseline.reference} if obj.baseline_id else None
 
 
@@ -136,9 +136,9 @@ class RunDetailSerializer(RunListSerializer):
     class Meta(RunListSerializer.Meta):
         fields = RunListSerializer.Meta.fields + ["cases", "links"]
 
-    def get_links(self, obj):
+    def get_links(self, obj) -> dict:
         base = f"/api/test-lab/runs/{obj.pk}/export/"
-        return {"json": base + "?type=json", "csv": base + "?type=csv", "junit": base + "?type=junit"}
+        return {"json": base + "?type=json", "csv": base + "?type=csv", "junit": base + "?type=junit", "pdf": base + "?type=pdf"}
 
 
 class RunRequestSerializer(serializers.Serializer):

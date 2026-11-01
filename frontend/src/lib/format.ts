@@ -29,6 +29,12 @@ export const ACTION_LABELS: Record<string, string> = {
   'testlab.builtin_loaded': 'Loaded the standard fixtures',
   'testlab.expected_adopted': 'Updated a fixture\'s expected result',
   'testlab.run_started': 'Started a test run',
+  'review.confirmed': 'Confirmed a result after review',
+  'review.rejected': 'Rejected a result after review',
+  'report.downloaded': 'Downloaded a report',
+  'auth.session_expired': 'Signed out after inactivity',
+  'auth.login_locked': 'Sign-in refused: account locked',
+  'ssn.verified': 'Checked an SSN with the provider',
 }
 
 export function actionLabel(code: string): string {

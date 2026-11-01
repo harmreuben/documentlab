@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { AuthProvider } from '../auth/AuthContext'
 import { routes } from '../routes'
+import { ModulePage } from '../pages/ModulePage'
+import { FlaskConical } from 'lucide-react'
 import type { DashboardSummary, Me } from '../api/types'
 
 const analyst: Me = {
@@ -19,7 +21,7 @@ const summary: DashboardSummary = {
   users: null,
   activity: Array.from({ length: 14 }, (_, i) => ({ date: `2026-10-${String(17 + i).padStart(2, '0')}`, events: i % 3 })),
   recent_activity: [{ id: 1, created_at: '2026-10-30T11:00:00Z', username: 'ann', action: 'auth.login' }],
-  modules: [{ key: 'rules', name: 'Validation Rules', phase: 9, status: 'planned' }],
+  modules: [{ key: 'future', name: 'Future module', phase: 11, status: 'planned' }],
 }
 
 function json(status: number, body: unknown) {
@@ -102,12 +104,13 @@ describe('signed-in pages', () => {
   })
 
   it('says plainly that an unbuilt workspace does not work yet', async () => {
-    mockBackend({
-      '/api/auth/me/': () => json(200, analyst),
-      '/api/dashboard/summary/': () => json(200, summary),
-    })
-    renderAt('/rules')
+    mockBackend({ '/api/dashboard/summary/': () => json(200, summary) })
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ModulePage item={{ key: 'future', label: 'Future module', path: '/future', icon: FlaskConical, description: 'Not yet.' }} />
+      </QueryClientProvider>,
+    )
     expect(await screen.findByText('This workspace is not built yet.')).toBeInTheDocument()
-    expect(await screen.findByText(/It arrives in Phase 9/)).toBeInTheDocument()
+    expect(await screen.findByText(/It arrives in Phase 11/)).toBeInTheDocument()
   })
 })
